@@ -2,7 +2,6 @@ import styles from '../styles/Search.module.css'
 import Head from 'next/head'
 import React from 'react';
 import { Input, Spacer } from '@nextui-org/react';
-
 import axios from 'axios';
 import SearchResult from '../components/searchResult';
 
@@ -66,14 +65,17 @@ class Search extends React.Component {
                         <Spacer y={0.5} />
                         {
                             this.state.results.map((result, idx) => (
-                                <SearchResult track={result} key={`result${idx}`} />
+                                <div key={`result${idx}`}>
+                                    <SearchResult track={result} />
+                                    <Spacer y={0.2} />
+                                </div>
                             ))
                         }
                     </div>}
 
-                    <pre>
+                    {/* <pre>
                         {JSON.stringify(this.state.results, null, 2)}
-                    </pre>
+                    </pre> */}
                 </div>
 
             </div>

@@ -1,5 +1,6 @@
-import { Card, Row, Col, Text, Spacer } from '@nextui-org/react';
+import { Card, Row, Col, Text, Button } from '@nextui-org/react';
 import React from 'react';
+import axios from 'axios';
 
 
 class SearchResult extends React.Component {
@@ -14,23 +15,41 @@ class SearchResult extends React.Component {
         return displayText;
     }
 
+    requestDownload = async () => {
+        let download = await axios.put("http://192.168.1.18:8100/download", this.props.track);
+        console.log(download.data);
+    }
+
     render() {
         return (
             <Card>
                 <Card.Body>
-                    <Row >
-                        <img src={this.props.track.album.image} width="128px" height="128px" style={{ "margin-right": "0.5em" }} />
-                        <Col>
-                            <Text>{`Track #${this.props.track.track_number} in ${this.props.track.album.name}`}</Text>
-                            <Text h3>{this.props.track.name}</Text>
-                            <Text>{`by ${this.props.track.artists.join(", ")}`}</Text>
-                            <Text>{this.formatRuntime(this.props.track.duration_ms)}</Text>
-                            {
-                                this.props.track.explicit &&
-                                <Text>Explicit</Text>
-                            }
-                        </Col>
-                    </Row>
+                    <Col>
+                        <Row >
+                            <img src={this.props.track.album.image} width="150px" height="150px" style={{ marginRight: "0.5em" }} />
+                            <Col>
+                                <Text span>{`Track #${this.props.track.track_number} in`}</Text>
+                                <Text span b style={{ margin: "0 0.1em" }}>{this.props.track.album.name}</Text>
+                                <Text h3>{this.props.track.name}</Text>
+                                <Text span>by</Text>
+                                <Text span b style={{ margin: "0 0.1em" }}>{this.props.track.artists.join(", ")}</Text>
+                                <Text>{this.formatRuntime(this.props.track.duration_ms)}</Text>
+                                {
+                                    this.props.track.explicit &&
+                                    <Text>Explicit</Text>
+                                }
+                            </Col>
+                        </Row>
+                        <Row justify="center">
+                            <Button auto flat onClick={this.requestDownload} style={{
+                                lineHeight: "24px",
+                                height: "auto",
+                                marginTop: "4px",
+                                marginBottom: "-8px",
+                                width: "100%"
+                            }} >Download</Button>
+                        </Row>
+                    </Col>
                 </Card.Body>
             </Card>
         )
