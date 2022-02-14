@@ -1,9 +1,10 @@
 import styles from '../styles/Search.module.css'
 import Head from 'next/head'
 import React from 'react';
-import { Input } from '@nextui-org/react';
-import { Button } from '@nextui-org/react';
+import { Input, Spacer } from '@nextui-org/react';
+
 import axios from 'axios';
+import SearchResult from '../components/searchResult';
 
 var timeout = null;
 class Search extends React.Component {
@@ -19,16 +20,14 @@ class Search extends React.Component {
 
     textTyped = (event) => {
         // Update component state
-        console.log('Updating state...')
         this.setState((state, props) => ({
             query: event.target.value
         }));
         // Debounce the API call
-        this.debounce(this.getSearchResults, 1000, false)();
+        this.debounce(this.getSearchResults, 500, false)();
     }
 
     debounce = (func, wait, immediate) => {
-        console.log(`Debouncing with wait=${wait} and immediate=${immediate}`)
         return function () {
             var context = this, args = arguments;
             var later = function () {
@@ -43,7 +42,7 @@ class Search extends React.Component {
     };
 
     getSearchResults = async () => {
-        let newResults = await axios.get(`http://localhost:8100/search/sp/${this.state.query}`);
+        let newResults = await axios.get(`http://192.168.1.18:8100/search/sp/${this.state.query}`);
         this.setState((state, props) => ({
             results: newResults.data
         }));
@@ -62,13 +61,16 @@ class Search extends React.Component {
                     <Input size="xl" labelPlaceholder="Search for a song..."
                         shadow={false} type="search" bordered color="primary"
                         onChange={this.textTyped} />
-                    {this.state.results != null && <Button.Group size="xl" vertical bordered>
+
+                    {this.state.results != null && <div>
+                        <Spacer y={0.5} />
                         {
                             this.state.results.map((result, idx) => (
-                                <Button>Button #{idx}</Button>
+                                <SearchResult track={result} key={`result${idx}`} />
                             ))
                         }
-                    </Button.Group>}
+                    </div>}
+
                     <pre>
                         {JSON.stringify(this.state.results, null, 2)}
                     </pre>
