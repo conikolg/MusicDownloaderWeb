@@ -1,4 +1,4 @@
-import { Card, Row, Col, Text, Button } from '@nextui-org/react';
+import { Card, Row, Col, Text, Button, Loading } from '@nextui-org/react';
 import React from 'react';
 import axios from 'axios';
 
@@ -21,18 +21,18 @@ class SearchResult extends React.Component {
         return displayText;
     }
 
-    getDownloadButtonText = () => {
-        if (!this.state.evSource)
-            return "Download"
-
-        return "Downloading " + this.state.download.link + "   (" + this.state.download.progress + "%)"
-    }
-
     getDownloadButtonContent = () => {
-        if (!this.state.evSource) {
+        // No download has been requested yet
+        if (this.state.downloadProgress === null) {
             return <Text span>Download</Text>;
         }
 
+        // Download requested, but no server-side-events yet
+        if (this.state.downloadProgress === 0 && !this.state.evSource) {
+            return <Loading size="xl" type="points-opacity" style={{ margin: "7px 0" }} />
+        }
+
+        // Download requested, progress is being streamed
         if (this.state.downloadProgress < 100) {
             return <div>
                 <Text span>Downloading</Text>
@@ -41,6 +41,7 @@ class SearchResult extends React.Component {
             </div>
         }
 
+        // Download requested and completed.
         return <div>
             <Text span>Downloaded</Text>
             <Text span b>{" " + this.state.videoLink + " "}</Text>
@@ -48,7 +49,8 @@ class SearchResult extends React.Component {
     }
 
     requestDownload = async () => {
-        console.log("Requesting download for " + this.props.track.name);
+        this.setState({ downloadProgress: 0 });
+
         // Request download, get download job information back
         let download = await axios.put("http://192.168.1.18:8100/download", this.props.track);
         let { job_id, link, title } = download.data
@@ -56,8 +58,8 @@ class SearchResult extends React.Component {
         // Build server-side-event stream
         let source = new EventSource("http://192.168.1.18:8100/progress/" + job_id);
         source.onmessage = event => {
-            console.log(event.data);
-            if (event.data == "Done.") {
+            this.setState({ downloadProgress: event.data });
+            if (event.data == "100") {
                 source.close();
             }
         }
