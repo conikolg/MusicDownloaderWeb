@@ -6,6 +6,10 @@ import axios from 'axios';
 class SearchResult extends React.Component {
     constructor(props) {
         super(props);
+        this.state = {
+            evSource: null,
+            download: null
+        }
     }
 
     formatRuntime = (ms) => {
@@ -15,9 +19,55 @@ class SearchResult extends React.Component {
         return displayText;
     }
 
+    getDownloadButtonText = () => {
+        if (!this.state.download)
+            return "Download"
+
+        return "Downloading " + this.state.download.link + "   (" + this.state.download.progress + "%)"
+    }
+
+    getDownloadButtonContent = () => {
+        if (!this.state.download) {
+            return <Text span>Download</Text>;
+        }
+
+        if (this.state.download.progress < 100) {
+            return <div>
+                <Text span>Downloading</Text>
+                <Text span b>{" " + this.state.download.link + " "}</Text>
+                <Text span>({this.state.download.progress}%)</Text>
+            </div>
+        }
+
+        return <div>
+            <Text span>Downloaded</Text>
+            <Text span b>{this.state.download.link}</Text>
+        </div>
+    }
+
     requestDownload = async () => {
+        console.log("Requesting download for " + this.props.track.name);
+        // Request download, get download job information back
         let download = await axios.put("http://192.168.1.18:8100/download", this.props.track);
-        console.log(download.data);
+        let { job_id, link, title } = download.data
+
+        // Build server-side-event stream
+        let source = new EventSource("http://192.168.1.18:8100/progress/" + job_id);
+        source.onmessage = event => {
+            console.log(event.data);
+            if (event.data == "Done.") {
+                source.close();
+            }
+        }
+
+        this.setState((state, props) => ({
+            evSource: source,
+            download: {
+                link: link,
+                title: title,
+                progress: 0
+            }
+        }))
     }
 
     render() {
@@ -47,7 +97,7 @@ class SearchResult extends React.Component {
                                 marginTop: "4px",
                                 marginBottom: "-8px",
                                 width: "100%"
-                            }} >Download</Button>
+                            }} >{this.getDownloadButtonContent()}</Button>
                         </Row>
                     </Col>
                 </Card.Body>
