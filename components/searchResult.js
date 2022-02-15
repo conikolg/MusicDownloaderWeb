@@ -8,7 +8,9 @@ class SearchResult extends React.Component {
         super(props);
         this.state = {
             evSource: null,
-            download: null
+            videoLink: null,
+            videoTitle: null,
+            downloadProgress: null,
         }
     }
 
@@ -20,28 +22,28 @@ class SearchResult extends React.Component {
     }
 
     getDownloadButtonText = () => {
-        if (!this.state.download)
+        if (!this.state.evSource)
             return "Download"
 
         return "Downloading " + this.state.download.link + "   (" + this.state.download.progress + "%)"
     }
 
     getDownloadButtonContent = () => {
-        if (!this.state.download) {
+        if (!this.state.evSource) {
             return <Text span>Download</Text>;
         }
 
-        if (this.state.download.progress < 100) {
+        if (this.state.downloadProgress < 100) {
             return <div>
                 <Text span>Downloading</Text>
-                <Text span b>{" " + this.state.download.link + " "}</Text>
-                <Text span>({this.state.download.progress}%)</Text>
+                <Text span b>{" " + this.state.videoLink + " "}</Text>
+                <Text span>({this.state.downloadProgress}%)</Text>
             </div>
         }
 
         return <div>
             <Text span>Downloaded</Text>
-            <Text span b>{this.state.download.link}</Text>
+            <Text span b>{" " + this.state.videoLink + " "}</Text>
         </div>
     }
 
@@ -62,11 +64,9 @@ class SearchResult extends React.Component {
 
         this.setState((state, props) => ({
             evSource: source,
-            download: {
-                link: link,
-                title: title,
-                progress: 0
-            }
+            videoLink: link,
+            videoTitle: title,
+            downloadProgress: 0,
         }))
     }
 
@@ -91,7 +91,7 @@ class SearchResult extends React.Component {
                             </Col>
                         </Row>
                         <Row justify="center">
-                            <Button auto flat onClick={this.requestDownload} style={{
+                            <Button auto flat onClick={this.requestDownload} disabled={this.state.downloadProgress !== null} style={{
                                 lineHeight: "24px",
                                 height: "auto",
                                 marginTop: "4px",
